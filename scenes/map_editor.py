@@ -141,16 +141,20 @@ class MapEditorScene:
     def on_enter(self):
         print("Вход в редактор карт")
 
-        # Получаем параметры из game
+        # Загрузка параметров из game
         if hasattr(self.game, 'editor_params'):
-            size = self.game.editor_params.get('size', 64)
-            terrain = self.game.editor_params.get('terrain', 'grass')
-            self.create_map(size, terrain)
+            # Если есть файл для загрузки
+            if 'load_file' in self.game.editor_params:
+                self.load_map(self.game.editor_params['load_file'])
+            # Или параметры создания новой карты
+            elif 'size' in self.game.editor_params:
+                size = self.game.editor_params.get('size', 64)
+                terrain = self.game.editor_params.get('terrain', 'grass')
+                self.create_map(size, terrain)
 
-            # Очищаем параметры
-            del self.game.editor_params
+            del self.game.editor_params  # Очищаем параметры
         else:
-            # Если параметров нет, создаем карту по умолчанию
+            # По умолчанию создаем карту 64x64
             self.create_map(64, 'grass')
 
     def create_map(self, size, terrain='grass'):
@@ -759,6 +763,8 @@ class MapEditorScene:
         except Exception as e:
             print(f"Ошибка загрузки карты: {e}")
             self.load_error = f"Ошибка загрузки: {str(e)}"
+            # Создаем новую карту при ошибке
+            self.create_map(64, 'grass')
 
     def perform_load(self):
         """Загружает выбранную карту"""
