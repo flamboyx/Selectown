@@ -127,80 +127,78 @@ class MapEditorMenuScene:
     def render(self, surface):
         surface.fill((40, 45, 60))
 
-        if self.load_dialog_active:
-            # Рендер диалога загрузки
-            self.render_load_dialog(surface)
-        else:
-            # Рендер основного меню
-            self.render_main_menu(surface)
-
-    def render_main_menu(self, surface):
-        """Отрисовывает главное меню редактора"""
+        # Заголовок
         title_font = pygame.font.Font(None, 60)
         title = title_font.render("Редактор карт", True, (220, 240, 255))
         title_rect = title.get_rect(center=(surface.get_width() // 2, surface.get_height() * 0.2))
         surface.blit(title, title_rect)
 
+        # Сообщение об ошибке
+        if self.load_error:
+            error_font = pygame.font.Font(None, 30)
+            error_text = error_font.render(self.load_error, True, (255, 100, 100))
+            surface.blit(error_text, (surface.get_width() // 2 - error_text.get_width() // 2, surface.get_height() * 0.15))
+
         for button in self.buttons:
             button.draw(surface)
 
-    def render_load_dialog(self, surface):
-        """Отрисовывает диалог загрузки карты"""
-        screen_width, screen_height = surface.get_size()
+        if self.load_dialog_active:
+            """Отрисовывает диалог загрузки карты"""
+            screen_width, screen_height = surface.get_size()
 
-        # Полупрозрачный фон
-        overlay = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
-        overlay.fill((0, 0, 0, 180))
-        surface.blit(overlay, (0, 0))
+            # Полупрозрачный фон
+            overlay = pygame.Surface(surface.get_size(), pygame.SRCALPHA)
+            overlay.fill((0, 0, 0, 90))
+            surface.blit(overlay, (0, 0))
 
-        # Основное окно диалога
-        dialog_rect = pygame.Rect(100, 100, screen_width - 200, screen_height - 200)
-        pygame.draw.rect(surface, (50, 55, 75), dialog_rect, border_radius=10)
-        pygame.draw.rect(surface, (100, 110, 140), dialog_rect, 2, border_radius=10)
+            # Основное окно диалога
+            dialog_rect = pygame.Rect(100, 100, screen_width - 200, screen_height - 200)
+            pygame.draw.rect(surface, (50, 55, 75), dialog_rect, border_radius=10)
+            pygame.draw.rect(surface, (100, 110, 140), dialog_rect, 2, border_radius=10)
 
-        # Заголовок
-        title_font = pygame.font.Font(None, 36)
-        title = title_font.render("Выберите карту для загрузки", True, (220, 240, 255))
-        surface.blit(title, (screen_width // 2 - title.get_width() // 2, 120))
+            # Заголовок
+            title_font = pygame.font.Font(None, 36)
+            title = title_font.render("Выберите карту для загрузки", True, (220, 240, 255))
+            surface.blit(title, (screen_width // 2 - title.get_width() // 2, 120))
 
-        # Список карт
-        visible_files = self.map_files[self.scroll_offset:self.scroll_offset + self.items_per_page]
-        visible_thumbnails = self.map_thumbnails[self.scroll_offset:self.scroll_offset + self.items_per_page]
+            # Список карт
+            visible_files = self.map_files[self.scroll_offset:self.scroll_offset + self.items_per_page]
+            visible_thumbnails = self.map_thumbnails[self.scroll_offset:self.scroll_offset + self.items_per_page]
 
-        for i, (map_file, thumbnail) in enumerate(zip(visible_files, visible_thumbnails)):
-            row = i // 3
-            col = i % 3
+            for i, (map_file, thumbnail) in enumerate(zip(visible_files, visible_thumbnails)):
+                row = i // 3
+                col = i % 3
 
-            thumb_x = 120 + col * 220
-            thumb_y = 180 + row * 120
+                thumb_x = 120 + col * 220
+                thumb_y = 180 + row * 120
 
-            # Подсветка выбранной карты
-            if self.selected_map_index == i + self.scroll_offset:
-                pygame.draw.rect(surface, (100, 200, 255),
-                                 (thumb_x - 5, thumb_y - 5, 190, 110), 3, border_radius=5)
+                # Подсветка выбранной карты
+                if self.selected_map_index == i + self.scroll_offset:
+                    pygame.draw.rect(surface, (100, 200, 255),
+                                     (thumb_x - 5, thumb_y - 5, 190, 110), 3, border_radius=5)
 
-            # Миниатюра карты
-            surface.blit(thumbnail, (thumb_x, thumb_y))
+                # Миниатюра карты
+                surface.blit(thumbnail, (thumb_x, thumb_y))
 
-            # Название файла
-            font = pygame.font.Font(None, 20)
-            name_text = font.render(os.path.splitext(map_file)[0], True, (200, 200, 200))
-            surface.blit(name_text, (thumb_x + 10, thumb_y + 105))
+                # Название файла
+                font = pygame.font.Font(None, 20)
+                name_text = font.render(os.path.splitext(map_file)[0], True, (200, 200, 200))
+                surface.blit(name_text, (thumb_x + 10, thumb_y + 105))
 
-        # Информация о прокрутке
-        scroll_info = f"Карты {self.scroll_offset + 1}-{min(self.scroll_offset + self.items_per_page, len(self.map_files))} из {len(self.map_files)}"
-        info_text = font.render(scroll_info, True, (200, 200, 200))
-        surface.blit(info_text, (120, screen_height - 150))
+            # Информация о прокрутке
+            scroll_info = f"Карты {self.scroll_offset + 1}-{min(self.scroll_offset + self.items_per_page, len(self.map_files))} из {len(self.map_files)}"
+            info_text = font.render(scroll_info, True, (200, 200, 200))
+            surface.blit(info_text, (120, screen_height - 150))
 
-        # Сообщение об ошибке
-        if self.load_error:
-            error_font = pygame.font.Font(None, 26)
-            error_text = error_font.render(self.load_error, True, (255, 100, 100))
-            surface.blit(error_text, (screen_width // 2 - error_text.get_width() // 2, 150))
+            # Сообщение об ошибке
+            if self.load_error:
+                error_font = pygame.font.Font(None, 26)
+                error_text = error_font.render(self.load_error, True, (255, 100, 100))
+                surface.blit(error_text, (screen_width // 2 - error_text.get_width() // 2, 150))
 
-        # Кнопки диалога
-        for button in self.load_dialog_buttons:
-            button.draw(surface)
+            # Кнопки диалога
+            for button in self.load_dialog_buttons:
+                button.draw(surface)
 
     def get_map_files(self):
         """Возвращает список доступных карт"""
